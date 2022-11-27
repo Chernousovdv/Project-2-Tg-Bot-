@@ -10,10 +10,12 @@ from get_data import champions_list
 from Globals import is_abilities, is_passive, is_enemy_tips, is_ally_tips, is_found, Globals
 #from PIL import Image
 from io import BytesIO
+from config import TOKEN
+
 
 
 nest_asyncio.apply()
-bot = Bot(token="5960492939:AAGt-1ZKNBn7nbETqvLSYu7o5ClQQw9S-4E")
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 # is_enemy_tip = True
 # is_ally_tip = True
