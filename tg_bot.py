@@ -25,7 +25,7 @@ dp = Dispatcher(bot)
 
 @dp.message_handler(commands=['start'])
 async def welcoming_process(message: types.Message):
-    await message.reply("Hi! This bot allows to help you with the rune choice.\n"
+    await message.reply("Hi! This bot allows to help you guide through a vast and rapidly changing Leagu of Legends champion array.\n"
                         "If you have any questions, type /help.")
     chat.id = message.from_user.id
 
