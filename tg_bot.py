@@ -1,34 +1,25 @@
-import json
-
-import nest_asyncio
-from aiogram import Bot, types
-from aiogram.utils.markdown import hbold, hlink
 from aiogram.dispatcher import Dispatcher
+from aiogram.utils.markdown import hbold, hlink
 from aiogram.utils import executor
+from aiogram import Bot, types
+from config import TOKEN
+from Globals import is_abilities, is_passive, is_enemy_tips, is_ally_tips, is_found, Globals
 from get_data import collect_data
 from get_data import champions_list
-from Globals import is_abilities, is_passive, is_enemy_tips, is_ally_tips, is_found, Globals
-#from PIL import Image
 from io import BytesIO
-from config import TOKEN
-
+import json
+import nest_asyncio
 
 
 nest_asyncio.apply()
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-# is_enemy_tip = True
-# is_ally_tip = True
-# is_passive = True
-# print("why!!")
-# is_abilities = True
 
 @dp.message_handler(commands=['start'])
 async def welcoming_process(message: types.Message):
-    await message.reply("Hi! This bot allows to help you guide through a vast and rapidly changing Leagu of Legends champion array.\n"
+    await message.reply("Hi! This bot allows to help you with the rune choice.\n"
                         "If you have any questions, type /help.")
     chat.id = message.from_user.id
-
 
 @dp.message_handler(commands=['help'])
 async def process_help_command(message: types.Message):
@@ -47,6 +38,7 @@ async def process_help_command(message: types.Message):
 async def process_help_command(message: types.Message):
     is_enemy_tips.change(True)
     await message.reply("Now showing enemy tips")
+
 @dp.message_handler(commands=['Stop_enemy_tips'])
 async def process_help_command(message: types.Message):
     is_enemy_tips.change(False)
@@ -56,6 +48,7 @@ async def process_help_command(message: types.Message):
 async def process_help_command(message: types.Message):
     is_ally_tips.change(True)
     await message.reply("Now showing ally tips")
+
 @dp.message_handler(commands=['Stop_ally_tips'])
 async def process_help_command(message: types.Message):
     is_ally_tips.change(False)
@@ -65,14 +58,17 @@ async def process_help_command(message: types.Message):
 async def process_help_command(message: types.Message):
     is_passive.change(True)
     await message.reply("Now showing passive ability")
+
 @dp.message_handler(commands=['Stop_passive'])
 async def process_help_command(message: types.Message):
     is_passive.change(False)
     await message.reply("No passsive ability showing from now on")
+
 @dp.message_handler(commands=['Abilities'])
 async def process_help_command(message: types.Message):
     is_abilities.change(True)
     await message.reply("Now showing abilities")
+
 @dp.message_handler(commands=['Stop_abilities'])
 async def process_help_command(message: types.Message):
     is_abilities.change(False)
@@ -80,73 +76,54 @@ async def process_help_command(message: types.Message):
 
 @dp.message_handler(commands=['Champions'])
 async def process_help_command(message: types.Message):
-    rew = champions_list()
-    champ_list = ""
-    for champ in rew:
-        champ_list = champ_list + str(champ["name"]) + "\n"
-    await message.reply(champ_list)
+    list_of_champions = champions_list()
+    champ_list_output = ""
+    for champ in list_of_champions:
+        champ_list_output = champ_list_output + str(champ["name"]) + "\n"
+    await message.reply(champ_list_output)
 
-@dp.message_handler()
-async def champion_select(message: types.Message):
-    chat_id = message.from_user.id
-    dar = collect_data(message.text)
-    is_found.change(False)
-    if len(dar) != 0:
-        is_found.change(True)
-    passive_ability = ""
-    ally_tip = ""
-    enemy_tip = ""
-    Q = ""
-    W = ""
-    E = ""
-    R = ""
-    # with open('result.json') as file:
-    #     dar = json.load(file)
-    if is_enemy_tips.is_smth:
-        tips = dar.get("enemy_tips")
-        for item in tips:
-            enemy_tip = enemy_tip + item + " "
-    if is_ally_tips.is_smth:
-        tips = dar.get("ally_tips")
-        for item in tips:
-            ally_tip = ally_tip + item + " "
-    if is_passive.is_smth:
-        temp = dar.get("passive")
-        passive_ability = passive_ability + str(temp["name"])    + " - " + str(temp["description"])
-    if is_abilities.is_smth:
-        tmp = dar.get("spells")
-        qz = tmp[0]
-        wz = tmp[1]
-        ez = tmp[2]
-        rz = tmp[3]
+async def SendPhotosOfAbilities(chat_id, message):
+    if is_abilities.is_info:
+        data = collect_data(message.text)
+        abilities_list = data.get("spells")
+        qz = abilities_list[0]
+        wz = abilities_list[1]
+        ez = abilities_list[2]
+        rz = abilities_list[3]
+        Q = ""
+        W = ""
+        E = ""
+        R = ""
         Q = Q + str(qz["key"]) + ": " + str(qz["name"]) + ". " + str(qz["description"])
         W = W + str(wz["key"]) + ": " + str(wz["name"]) + ". " + str(wz["description"])
         E = E + str(ez["key"]) + ": " + str(ez["name"]) + ". " + str(ez["description"])
         R = R + str(rz["key"]) + "(Ultimate): " + str(rz["name"]) + ". " + str(rz["description"])
-    if is_found.is_smth:
-        await bot.send_photo(chat_id=chat_id, photo=dar.get("image_url"), caption=message.text)
-        if is_passive.is_smth:
-            await message.reply(passive_ability)
-        if is_enemy_tips.is_smth and is_ally_tips.is_smth:
-            enemy_tip = enemy_tip + "\n" + ally_tip
+        await bot.send_photo(chat_id=chat_id, photo=str(qz["image_url"]), caption=Q)
+        await bot.send_photo(chat_id=chat_id, photo=str(wz["image_url"]), caption=W)
+        await bot.send_photo(chat_id=chat_id, photo=str(ez["image_url"]), caption=E)
+        await bot.send_photo(chat_id=chat_id, photo=str(rz["image_url"]), caption=R)
+
+@dp.message_handler()
+async def champion_select(message: types.Message):
+    chat_id = message.from_user.id
+    data = collect_data(message.text)
+    ally_tip = enemy_tip = ""
+    if len(data) != 0:
+        is_found.change(True)
+    if is_found.is_info:
+        await bot.send_photo(chat_id=chat_id, photo=data.get("image_url"), caption=message.text)
+        if is_passive.is_info:
+            passive_list = data.get("passive")
+            await message.reply(str(passive_list["name"]) + " - " + str(passive_list["description"]))
+        if is_enemy_tips.is_info:
+            tips_list = data.get("enemy_tips")
+            for item in tips_list:
+                enemy_tip = enemy_tip + item + " "
             await message.reply(enemy_tip)
-        else:
-            if is_enemy_tips.is_smth:
-                await message.reply(enemy_tip)
-            if is_ally_tips.is_smth:
-                await message.reply(ally_tip)
-        if is_abilities.is_smth:
-            await bot.send_photo(chat_id=chat_id, photo=str(qz["image_url"]), caption=Q)
-            await bot.send_photo(chat_id=chat_id, photo=str(wz["image_url"]), caption=W)
-            await bot.send_photo(chat_id=chat_id, photo=str(ez["image_url"]), caption=E)
-            await bot.send_photo(chat_id=chat_id, photo=str(rz["image_url"]), caption=R)
-
-
-def main():
-    executor.start_polling(dp)
-
-
-if __name__ == '__main__':
-    main()
-
+        if is_ally_tips.is_info:
+            tips_list = data.get("ally_tips")
+            for item in tips_list:
+                ally_tip = ally_tip + item + " "
+            await message.reply(ally_tip)
+        await SendPhotosOfAbilities(chat_id, message)
 
